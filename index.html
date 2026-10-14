@@ -71,6 +71,12 @@ h1 {
 .facts span { display: inline-flex; gap: 6px; align-items: baseline; }
 .facts b { font-weight: 700; font-variant-numeric: tabular-nums; }
 
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.intro { display: grid; gap: 12px; max-width: 62ch; }
+.intro p { margin: 0; }
+.intro h2 { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--pine); margin: 8px 0 0; }
+.intro ul { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.intro .signoff { font-weight: 600; color: var(--berry); }
 .flyer { margin: 0; }
 .flyer img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--line); }
 /* 12 flavors as pint lids */
@@ -117,7 +123,7 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, .chip input:f
 .pickup-info { background: var(--pine-soft); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; }
 .pickup-info p { margin: 0; font-size: 15px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
-.chips legend { padding: 0; margin-bottom: 6px; }
+.chips legend { padding: 0; margin-bottom: 8px; }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
 .chip span {
   display: inline-block; padding: 9px 14px; border-radius: 99px; border: 1px solid var(--line);
@@ -156,21 +162,26 @@ footer { font-size: 13px; color: var(--muted); }
 <div class="wrap">
   <p class="demo" id="demoBanner" hidden><strong>Demo preview.</strong> Reservations here aren't saved. Nothing is sent to the shop.</p>
 
-  <header>
-    <div class="shop" id="shopName">Vanilla Bean Creamery</div>
-    <h1>12 Scoops of Christmas</h1>
-    <p class="lede">12 surprise flavors in 4 oz scoops (similar to our Kiddie Cup size), 4 toppings and a custom scratch-off, all in one box. Reserve yours now and pay when you pick it up.</p>
-    <div class="facts">
-      <span>Price <b id="priceLabel">$59.95</b></span>
-      <span>Order by <b id="deadlineFact">Nov 16</b></span>
-      <span>Pickup <b id="pickupFact">Dec 5–12</b></span>
-      <span>Payment <b>at pickup</b></span>
-    </div>
-  </header>
+  <h1 class="sr-only">12 Scoops of Christmas, Vanilla Bean Creamery</h1>
 
   <figure class="flyer">
     <img src="flyer.png" alt="12 Scoops of Christmas box from Vanilla Bean Creamery: 12 surprise flavors, 4 toppings, 1 custom scratch-off, $59.95 per box. Order by 11/16, pickup Dec 5 to Dec 12." width="437" height="562">
   </figure>
+
+  <section class="intro">
+    <p>Thank you so much for your interest in our first-ever 12 Scoops of Christmas Advent Calendar! We’re so excited to share this with you and hope it becomes a fun holiday activity for the whole family.</p>
+    <p>Each box is $59.95 and includes 12 surprise ice cream flavors, each in a 4 oz. cup (similar to our Kiddie Cup size), 4 toppings, and a custom scratch-off card. The fun part: taste each flavor first, have your family guess what it is, and then scratch it off to reveal the answer!</p>
+
+    <h2>A few important details</h2>
+    <ul>
+      <li>Unfortunately, we are unable to accommodate flavor substitutions or special requests for these boxes. The back of your scratch-off card will include allergen information for each flavor so you can review it before tasting.</li>
+      <li>Calendars are in-store pickup only; delivery is not available. Payment will be collected when you pick up your box.</li>
+      <li>Please note that all calendars must be picked up by the end of the day on December 12. Any boxes that have not been picked up by then will be released from hold and made available to other customers.</li>
+    </ul>
+
+    <p>Quantities are limited, so please fill out the form below as soon as possible to reserve yours!</p>
+    <p class="signoff">We can’t wait for you and your family to try all 12 surprise flavors! 🎄🍦</p>
+  </section>
 
   <section class="stock" aria-live="polite">
     <div class="stock-row"><span>Calendars left</span><b id="stockText">…</b></div>
@@ -205,14 +216,13 @@ footer { font-size: 13px; color: var(--muted); }
       </div>
     </div>
 
-    <div class="pickup-info">
-      <span class="label">Pickup</span>
-      <p id="pickupInfo">Anytime during the pickup window. No need to choose a day.</p>
-    </div>
+    <fieldset class="chips" id="pickupDays">
+      <legend class="label">Preferred pick-up date <span class="opt" id="pickupHours"></span></legend>
+    </fieldset>
 
     <div class="field">
       <label for="notes">Notes <span class="opt">(optional)</span></label>
-      <textarea id="notes" name="notes" placeholder="Gift wrap, someone else picking up, allergies…"></textarea>
+      <textarea id="notes" name="notes" placeholder="Someone else picking up, questions…"></textarea>
     </div>
 
     <div class="hp" aria-hidden="true">
@@ -252,8 +262,16 @@ const CONFIG = {
   maxPerOrder: 4,
   total: 50,                 // total calendars available (match MAX_CALENDARS in Code.gs)
   pickupHours: '12–8 pm',
-  pickupWindow: 'Sat, Dec 5 – Sat, Dec 12',   // shown to customers (match PICKUP_LABEL in Code.gs)
-  pickupShort: 'Dec 5–12',
+  pickupDays: [              // value must fall between PICKUP_START and PICKUP_END in Code.gs
+    { value: '2026-12-05', label: 'Sat, Dec 5' },
+    { value: '2026-12-06', label: 'Sun, Dec 6' },
+    { value: '2026-12-07', label: 'Mon, Dec 7' },
+    { value: '2026-12-08', label: 'Tue, Dec 8' },
+    { value: '2026-12-09', label: 'Wed, Dec 9' },
+    { value: '2026-12-10', label: 'Thu, Dec 10' },
+    { value: '2026-12-11', label: 'Fri, Dec 11' },
+    { value: '2026-12-12', label: 'Sat, Dec 12' }
+  ],
   orderDeadline: '2026-11-16T23:59:59-05:00',  // orders close after this (match ORDER_DEADLINE in Code.gs)
   demoRemaining: 37
 };
@@ -269,10 +287,16 @@ let qty = 1;
 
 function init() {
   $('demoBanner').hidden = !DEMO;
-  $('shopName').textContent = CONFIG.shopName;
-  $('priceLabel').textContent = money(CONFIG.price);
-  $('pickupFact').textContent = CONFIG.pickupShort;
-  $('pickupInfo').textContent = 'Anytime ' + CONFIG.pickupWindow + ', ' + CONFIG.pickupHours + '. No need to choose a day.';
+  $('pickupHours').textContent = '(' + CONFIG.pickupHours + ')';
+  const days = $('pickupDays');
+  CONFIG.pickupDays.forEach((d, i) => {
+    const l = document.createElement('label');
+    l.className = 'chip';
+    l.innerHTML = '<input type="radio" name="pickup" id="pickup' + i + '"><span></span>';
+    l.querySelector('input').value = d.value;
+    l.querySelector('span').textContent = d.label;
+    days.appendChild(l);
+  });
 
   $('qtyMinus').addEventListener('click', () => setQty(qty - 1));
   $('qtyPlus').addEventListener('click', () => setQty(qty + 1));
@@ -323,11 +347,13 @@ function setQty(n) {
 function showError(msg) { const e = $('err'); e.textContent = msg; e.hidden = !msg; }
 
 function readForm() {
+  const pick = document.querySelector('input[name=pickup]:checked');
   return {
     name: $('name').value.trim(),
     phone: $('phone').value.trim(),
     email: $('email').value.trim(),
     qty,
+    pickup: pick ? pick.value : '',
     notes: $('notes').value.trim(),
     website: $('website').value
   };
@@ -337,6 +363,7 @@ function validate(d) {
   if (!d.name) return ['name', 'Please enter your name.'];
   if (d.phone.replace(/\D/g, '').length < 10) return ['phone', 'Please enter a 10-digit phone number.'];
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return ['email', 'Please enter a valid email so we can send your confirmation.'];
+  if (!d.pickup) return ['pickup0', 'Please choose a preferred pick-up date.'];
   return null;
 }
 
@@ -380,11 +407,12 @@ function showDone(d, id) {
   $('dOrder').textContent = id;
   $('dName').textContent = d.name;
   $('dQty').textContent = d.qty;
-  $('dPickup').textContent = CONFIG.pickupWindow + ', ' + CONFIG.pickupHours;
+  const day = CONFIG.pickupDays.find(p => p.value === d.pickup);
+  $('dPickup').textContent = (day ? day.label : d.pickup) + ', ' + CONFIG.pickupHours + ' (pick up by Dec 12)';
   $('dTotal').textContent = money(d.qty * CONFIG.price) + ' at pickup';
   $('dEmail').textContent = DEMO
-    ? 'In the live version, a confirmation goes to ' + d.email + ' and a reminder when pickup opens.'
-    : 'A confirmation is on its way to ' + d.email + '. We’ll send a reminder when pickup opens.';
+    ? 'In the live version, a confirmation goes to ' + d.email + ' and a reminder the day before your pickup date.'
+    : 'A confirmation is on its way to ' + d.email + '. We’ll send a reminder the day before your pickup date.';
   $('orderForm').hidden = true;
   $('done').hidden = false;
   $('done').scrollIntoView({ behavior: 'smooth', block: 'start' });
