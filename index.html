@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Advent Calendar Reservations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, like a menu card — product up top, the 12 flavors as pint lids, then a short reserve form. */
+:root {
+  --bg: #FBF6F7;
+  --surface: #FFFFFF;
+  --ink: #2B1D24;
+  --muted: #76626C;
+  --line: #EADDE2;
+  --berry: #B4235A;
+  --berry-ink: #FFFFFF;
+  --berry-soft: #F8E4EC;
+  --pine: #1E5B47;
+  --pine-soft: #E2EFE9;
+  --warn: #9A4A00;
+  --font-display: "Shrikhand", "Cooper Black", Georgia, serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1A1317; --surface: #241A20; --ink: #F5ECEF; --muted: #B8A4AE; --line: #3A2C33;
+    --berry: #F0709B; --berry-ink: #2A0E19; --berry-soft: #3A1F2A;
+    --pine: #82CDAE; --pine-soft: #1E2F28; --warn: #F2B26B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1A1317; --surface: #241A20; --ink: #F5ECEF; --muted: #B8A4AE; --line: #3A2C33;
+  --berry: #F0709B; --berry-ink: #2A0E19; --berry-soft: #3A1F2A;
+  --pine: #82CDAE; --pine-soft: #1E2F28; --warn: #F2B26B;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 28px; }
+
+.demo {
+  font-size: 13px; color: var(--warn); background: var(--surface);
+  border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px;
+}
+.demo strong { font-weight: 700; }
+
+header { display: grid; gap: 10px; }
+.shop { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pine); }
+h1 {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(34px, 9vw, 48px);
+  line-height: 1.05; margin: 0; color: var(--berry); text-wrap: balance;
+}
+.lede { margin: 0; color: var(--muted); max-width: 46ch; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.facts span { display: inline-flex; gap: 6px; align-items: baseline; }
+.facts b { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* 12 flavors as pint lids */
+.flavors h2, .form h2 { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.lids { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; }
+@media (max-width: 420px) { .lids { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.lids li { display: grid; justify-items: center; gap: 6px; text-align: center; font-size: 12px; line-height: 1.25; min-width: 0; }
+.lid {
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--lid); color: #2B1D24; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.55), 0 1px 0 var(--line);
+}
+.note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+
+/* stock meter */
+.stock { display: grid; gap: 6px; }
+.stock-row { display: flex; justify-content: space-between; font-size: 14px; }
+.stock-row b { font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--pine); border-radius: 99px; transition: width .4s ease; }
+
+/* form */
+.form { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 18px; }
+.form h2 { margin: 0; }
+.field { display: grid; gap: 6px; }
+label, .label { font-size: 14px; font-weight: 600; }
+.opt { font-weight: 400; color: var(--muted); }
+input[type=text], input[type=tel], input[type=email], textarea {
+  width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
+}
+textarea { min-height: 70px; resize: vertical; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, .chip input:focus-visible + span {
+  outline: 2px solid var(--berry); outline-offset: 2px;
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 460px) { .row2 { grid-template-columns: 1fr; } }
+
+.qty { display: flex; align-items: center; gap: 0; width: max-content; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.qty button { width: 44px; height: 44px; border: 0; background: var(--bg); color: var(--ink); font-size: 20px; cursor: pointer; }
+.qty button:disabled { color: var(--line); cursor: default; }
+.qty output { width: 48px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+.chips legend { padding: 0; margin-bottom: 6px; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span {
+  display: inline-block; padding: 9px 14px; border-radius: 99px; border: 1px solid var(--line);
+  background: var(--bg); font-size: 14px; cursor: pointer; font-weight: 500;
+}
+.chip input:checked + span { background: var(--pine); border-color: var(--pine); color: var(--surface); }
+
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; }
+.total b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.total small { color: var(--muted); font-size: 13px; }
+
+.btn {
+  font: inherit; font-weight: 700; font-size: 16px; border: 0; border-radius: 12px; padding: 14px 18px;
+  background: var(--berry); color: var(--berry-ink); cursor: pointer; width: 100%;
+}
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.ghost { background: transparent; color: var(--berry); border: 1px solid var(--berry); }
+.err { color: var(--berry); font-size: 14px; font-weight: 600; margin: 0; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* confirmation */
+.done { background: var(--pine-soft); border-radius: var(--radius); padding: 22px 20px; display: grid; gap: 14px; }
+.done h2 { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; margin: 0; color: var(--pine); }
+.done dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 15px; }
+.done dt { color: var(--muted); }
+.done dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.done p { margin: 0; }
+
+footer { font-size: 13px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="demo" id="demoBanner" hidden><strong>Demo preview.</strong> Reservations here aren't saved. Shop name, flavors, price and dates are placeholders.</p>
+
+  <header>
+    <div class="shop" id="shopName">Sweet Scoop Creamery</div>
+    <h1>12 Days of Xmas Advent Calendar</h1>
+    <p class="lede">Twelve mini pints of our holiday flavors, one for each of the 12 days before Christmas. Reserve yours now and pay when you pick it up.</p>
+    <div class="facts">
+      <span>Price <b id="priceLabel">$45</b></span>
+      <span>Contains <b>12 × 4 oz pints</b></span>
+      <span>Payment <b>at pickup</b></span>
+    </div>
+  </header>
+
+  <section class="flavors" aria-labelledby="flavorsTitle">
+    <h2 id="flavorsTitle">What's inside</h2>
+    <ul class="lids" id="lids"></ul>
+    <p class="note">Example flavor lineup.</p>
+  </section>
+
+  <section class="stock" aria-live="polite">
+    <div class="stock-row"><span>Calendars left</span><b id="stockText">…</b></div>
+    <div class="bar"><i id="stockBar" style="width:0%"></i></div>
+  </section>
+
+  <form class="form" id="orderForm" novalidate>
+    <h2>Reserve yours</h2>
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" autocomplete="name" required>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label" id="qtyLabel">How many</span>
+      <div class="qty" role="group" aria-labelledby="qtyLabel">
+        <button type="button" id="qtyMinus" aria-label="One fewer">−</button>
+        <output id="qty" aria-live="polite">1</output>
+        <button type="button" id="qtyPlus" aria-label="One more">+</button>
+      </div>
+    </div>
+
+    <fieldset class="chips" id="pickupDays">
+      <legend class="label">Pickup day <span class="opt" id="pickupHours"></span></legend>
+    </fieldset>
+
+    <div class="field">
+      <label for="notes">Notes <span class="opt">(optional)</span></label>
+      <textarea id="notes" name="notes" placeholder="Gift wrap, someone else picking up, allergies…"></textarea>
+    </div>
+
+    <div class="hp" aria-hidden="true">
+      <label for="website">Leave this empty</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="total"><span>Due at pickup<br><small>Plus tax if applicable</small></span><b id="total">$45.00</b></div>
+
+    <p class="err" id="err" role="alert" hidden></p>
+    <button class="btn" type="submit" id="submitBtn">Reserve, pay at pickup</button>
+  </form>
+
+  <section class="done" id="done" hidden aria-live="polite">
+    <h2>You're on the list!</h2>
+    <dl>
+      <dt>Order</dt><dd id="dOrder"></dd>
+      <dt>Name</dt><dd id="dName"></dd>
+      <dt>Calendars</dt><dd id="dQty"></dd>
+      <dt>Pickup</dt><dd id="dPickup"></dd>
+      <dt>Due</dt><dd id="dTotal"></dd>
+    </dl>
+    <p id="dEmail"></p>
+    <button class="btn ghost" type="button" id="again">Reserve another</button>
+  </section>
+
+  <footer id="footer">Questions? Stop by the shop or reply to your confirmation email.</footer>
+</div>
+
+<script>
+/* ===== Edit these for the shop ===== */
+const CONFIG = {
+  // Paste the Google Apps Script web app URL here. Leave empty for demo mode.
+  scriptUrl:https://script.google.com/macros/s/AKfycby79tIvnF9zbOLzt1TlGFaIVX07z4qpfJYDTGd12_NEWkJwoGGPaSsBMSHGqjjCUDw/exec '',
+  shopName: 'Vanilla Bean Creamery',
+  price: 59.95,
+  maxPerOrder: 4,
+  total: 50,                 // total calendars available (match MAX_CALENDARS in Code.gs)
+  pickupHours: '12–8 pm',
+  pickupDays: [              // value must match PICKUP_DAYS keys in Code.gs
+    { value: '2026-12-12', label: 'Sat, Dec 12' },
+  ],
+  flavors: [
+    'Peppermint Bark', 'Gingerbread', 'Eggnog', 'Hot Cocoa', 'Cranberry Orange', 'Chestnut Praline',
+    'Sugar Plum', 'Candy Cane Crunch', 'Maple Pecan', 'Spiced Pear Sorbet', 'Snickerdoodle', 'Vanilla Toffee'
+  ],
+  demoRemaining: 37
+};
+/* =================================== */
+
+const DEMO = !CONFIG.scriptUrl;
+const $ = id => document.getElementById(id);
+const money = n => '$' + n.toFixed(2);
+const lidColors = ['#F6C9D6','#E8C9A8','#F5E6B8','#D9BFAE','#F4B9A6','#E6D2BC','#D8C4E6','#F7D0D8','#EBCF9E','#DCE8C7','#F1DCC4','#F3E9D6'];
+
+let remaining = null;
+let qty = 1;
+
+function init() {
+  $('demoBanner').hidden = !DEMO;
+  $('shopName').textContent = CONFIG.shopName;
+  $('priceLabel').textContent = '$' + CONFIG.price;
+  $('pickupHours').textContent = '(' + CONFIG.pickupHours + ')';
+
+  const lids = $('lids');
+  CONFIG.flavors.forEach((f, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="lid" style="--lid:' + lidColors[i % 12] + '">' + (i + 1) + '</span><span></span>';
+    li.lastChild.textContent = f;
+    lids.appendChild(li);
+  });
+
+  const days = $('pickupDays');
+  CONFIG.pickupDays.forEach((d, i) => {
+    const l = document.createElement('label');
+    l.className = 'chip';
+    l.innerHTML = '<input type="radio" name="pickup" id="pickup' + i + '"><span></span>';
+    l.querySelector('input').value = d.value;
+    l.querySelector('span').textContent = d.label;
+    days.appendChild(l);
+  });
+
+  $('qtyMinus').addEventListener('click', () => setQty(qty - 1));
+  $('qtyPlus').addEventListener('click', () => setQty(qty + 1));
+  $('orderForm').addEventListener('submit', onSubmit);
+  $('again').addEventListener('click', resetForm);
+
+  loadStock();
+  setQty(1);
+}
+
+async function loadStock() {
+  if (DEMO) { renderStock(CONFIG.demoRemaining); return; }
+  try {
+    const res = await fetch(CONFIG.scriptUrl);
+    const data = await res.json();
+    renderStock(data.remaining);
+  } catch (e) {
+    $('stockText').textContent = 'Couldn’t load';
+  }
+}
+
+function renderStock(n) {
+  remaining = Math.max(0, n);
+  $('stockText').textContent = remaining > 0 ? remaining + ' of ' + CONFIG.total : 'Sold out';
+  $('stockBar').style.width = (remaining / CONFIG.total * 100) + '%';
+  const soldOut = remaining === 0;
+  $('submitBtn').disabled = soldOut;
+  $('submitBtn').textContent = soldOut ? 'Sold out' : 'Reserve, pay at pickup';
+  setQty(qty);
+}
+
+function maxQty() {
+  return Math.max(1, Math.min(CONFIG.maxPerOrder, remaining == null ? CONFIG.maxPerOrder : remaining));
+}
+
+function setQty(n) {
+  qty = Math.min(Math.max(1, n), maxQty());
+  $('qty').textContent = qty;
+  $('qtyMinus').disabled = qty <= 1;
+  $('qtyPlus').disabled = qty >= maxQty();
+  $('total').textContent = money(qty * CONFIG.price);
+}
+
+function showError(msg) { const e = $('err'); e.textContent = msg; e.hidden = !msg; }
+
+function readForm() {
+  const pick = document.querySelector('input[name=pickup]:checked');
+  return {
+    name: $('name').value.trim(),
+    phone: $('phone').value.trim(),
+    email: $('email').value.trim(),
+    qty,
+    pickup: pick ? pick.value : '',
+    notes: $('notes').value.trim(),
+    website: $('website').value
+  };
+}
+
+function validate(d) {
+  if (!d.name) return ['name', 'Please enter your name.'];
+  if (d.phone.replace(/\D/g, '').length < 10) return ['phone', 'Please enter a 10-digit phone number.'];
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return ['email', 'Please enter a valid email so we can send your confirmation.'];
+  if (!d.pickup) return ['pickup0', 'Please choose a pickup day.'];
+  return null;
+}
+
+async function onSubmit(ev) {
+  ev.preventDefault();
+  const d = readForm();
+  const bad = validate(d);
+  if (bad) { showError(bad[1]); $(bad[0]).focus(); return; }
+  showError('');
+  const btn = $('submitBtn');
+  btn.disabled = true; btn.textContent = 'Reserving…';
+
+  try {
+    let result;
+    if (DEMO) {
+      await new Promise(r => setTimeout(r, 700));
+      if (d.qty > remaining) throw new Error('Only ' + remaining + ' left. Please lower the quantity.');
+      const sold = CONFIG.total - remaining;
+      result = { ok: true, orderId: 'AC-' + (1001 + sold), remaining: remaining - d.qty };
+    } else {
+      const res = await fetch(CONFIG.scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(d)
+      });
+      result = await res.json();
+    }
+    if (!result.ok) {
+      if (typeof result.remaining === 'number') renderStock(result.remaining);
+      throw new Error(result.error || 'Something went wrong. Please try again.');
+    }
+    renderStock(result.remaining);
+    showDone(d, result.orderId);
+  } catch (e) {
+    showError(e.message && e.message !== 'Failed to fetch' ? e.message : 'We couldn’t reach the order system. Check your connection and try again.');
+    btn.disabled = remaining === 0;
+    btn.textContent = remaining === 0 ? 'Sold out' : 'Reserve, pay at pickup';
+  }
+}
+
+function showDone(d, id) {
+  const day = CONFIG.pickupDays.find(p => p.value === d.pickup);
+  $('dOrder').textContent = id;
+  $('dName').textContent = d.name;
+  $('dQty').textContent = d.qty;
+  $('dPickup').textContent = (day ? day.label : d.pickup) + ', ' + CONFIG.pickupHours;
+  $('dTotal').textContent = money(d.qty * CONFIG.price) + ' at pickup';
+  $('dEmail').textContent = DEMO
+    ? 'In the live version, a confirmation goes to ' + d.email + ' and a reminder the day before pickup.'
+    : 'A confirmation is on its way to ' + d.email + '. We’ll send a reminder the day before pickup.';
+  $('orderForm').hidden = true;
+  $('done').hidden = false;
+  $('done').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetForm() {
+  $('orderForm').reset();
+  $('done').hidden = true;
+  $('orderForm').hidden = false;
+  $('submitBtn').disabled = remaining === 0;
+  $('submitBtn').textContent = remaining === 0 ? 'Sold out' : 'Reserve, pay at pickup';
+  setQty(1);
+  $('name').focus();
+}
+
+init();
+</script>
+</body>
+</html>
