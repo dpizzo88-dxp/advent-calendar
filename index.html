@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Advent Calendar Reservations</title>
+<title>12 Scoops of Christmas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: one narrow column, like a menu card — product up top, the 12 flavors as pint lids, then a short reserve form. */
+/* Layout: one narrow column, like a menu card — product and flyer up top, then a short reserve form. */
 :root {
   --bg: #FBF6F7;
   --surface: #FFFFFF;
@@ -71,6 +71,8 @@ h1 {
 .facts span { display: inline-flex; gap: 6px; align-items: baseline; }
 .facts b { font-weight: 700; font-variant-numeric: tabular-nums; }
 
+.flyer { margin: 0; }
+.flyer img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--line); }
 /* 12 flavors as pint lids */
 .flavors h2, .form h2 { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
 .lids { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; }
@@ -112,6 +114,8 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, .chip input:f
 .qty button:disabled { color: var(--line); cursor: default; }
 .qty output { width: 48px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+.pickup-info { background: var(--pine-soft); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; }
+.pickup-info p { margin: 0; font-size: 15px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
 .chips legend { padding: 0; margin-bottom: 6px; }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
@@ -150,24 +154,23 @@ footer { font-size: 13px; color: var(--muted); }
 <body>
 
 <div class="wrap">
-  <p class="demo" id="demoBanner" hidden><strong>Demo preview.</strong> Reservations here aren't saved. Shop name, flavors, price and dates are placeholders.</p>
+  <p class="demo" id="demoBanner" hidden><strong>Demo preview.</strong> Reservations here aren't saved. Nothing is sent to the shop.</p>
 
   <header>
-    <div class="shop" id="shopName">Sweet Scoop Creamery</div>
-    <h1>12 Days of Xmas Advent Calendar</h1>
-    <p class="lede">Twelve mini pints of our holiday flavors, one for each of the 12 days before Christmas. Reserve yours now and pay when you pick it up.</p>
+    <div class="shop" id="shopName">Vanilla Bean Creamery</div>
+    <h1>12 Scoops of Christmas</h1>
+    <p class="lede">12 surprise flavors in 4 oz scoops (similar to our Kiddie Cup size), 4 toppings and a custom scratch-off, all in one box. Reserve yours now and pay when you pick it up.</p>
     <div class="facts">
-      <span>Price <b id="priceLabel">$45</b></span>
-      <span>Contains <b>12 × 4 oz pints</b></span>
+      <span>Price <b id="priceLabel">$59.95</b></span>
+      <span>Order by <b id="deadlineFact">Nov 16</b></span>
+      <span>Pickup <b id="pickupFact">Dec 5–12</b></span>
       <span>Payment <b>at pickup</b></span>
     </div>
   </header>
 
-  <section class="flavors" aria-labelledby="flavorsTitle">
-    <h2 id="flavorsTitle">What's inside</h2>
-    <ul class="lids" id="lids"></ul>
-    <p class="note">Example flavor lineup.</p>
-  </section>
+  <figure class="flyer">
+    <img src="flyer.png" alt="12 Scoops of Christmas box from Vanilla Bean Creamery: 12 surprise flavors, 4 toppings, 1 custom scratch-off, $59.95 per box. Order by 11/16, pickup Dec 5 to Dec 12." width="437" height="562">
+  </figure>
 
   <section class="stock" aria-live="polite">
     <div class="stock-row"><span>Calendars left</span><b id="stockText">…</b></div>
@@ -202,9 +205,10 @@ footer { font-size: 13px; color: var(--muted); }
       </div>
     </div>
 
-    <fieldset class="chips" id="pickupDays">
-      <legend class="label">Pickup day <span class="opt" id="pickupHours"></span></legend>
-    </fieldset>
+    <div class="pickup-info">
+      <span class="label">Pickup</span>
+      <p id="pickupInfo">Anytime during the pickup window. No need to choose a day.</p>
+    </div>
 
     <div class="field">
       <label for="notes">Notes <span class="opt">(optional)</span></label>
@@ -216,7 +220,7 @@ footer { font-size: 13px; color: var(--muted); }
       <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
     </div>
 
-    <div class="total"><span>Due at pickup<br><small>Plus tax if applicable</small></span><b id="total">$45.00</b></div>
+    <div class="total"><span>Due at pickup<br><small>Plus tax if applicable</small></span><b id="total">$59.95</b></div>
 
     <p class="err" id="err" role="alert" hidden></p>
     <button class="btn" type="submit" id="submitBtn">Reserve, pay at pickup</button>
@@ -248,13 +252,9 @@ const CONFIG = {
   maxPerOrder: 4,
   total: 50,                 // total calendars available (match MAX_CALENDARS in Code.gs)
   pickupHours: '12–8 pm',
-  pickupDays: [              // value must match PICKUP_DAYS keys in Code.gs
-    { value: '2026-12-12', label: 'Sat, Dec 12' },
-  ],
-  flavors: [
-    'Peppermint Bark', 'Gingerbread', 'Eggnog', 'Hot Cocoa', 'Cranberry Orange', 'Chestnut Praline',
-    'Sugar Plum', 'Candy Cane Crunch', 'Maple Pecan', 'Spiced Pear Sorbet', 'Snickerdoodle', 'Vanilla Toffee'
-  ],
+  pickupWindow: 'Sat, Dec 5 – Sat, Dec 12',   // shown to customers (match PICKUP_LABEL in Code.gs)
+  pickupShort: 'Dec 5–12',
+  orderDeadline: '2026-11-16T23:59:59-05:00',  // orders close after this (match ORDER_DEADLINE in Code.gs)
   demoRemaining: 37
 };
 /* =================================== */
@@ -262,7 +262,7 @@ const CONFIG = {
 const DEMO = !CONFIG.scriptUrl;
 const $ = id => document.getElementById(id);
 const money = n => '$' + n.toFixed(2);
-const lidColors = ['#F6C9D6','#E8C9A8','#F5E6B8','#D9BFAE','#F4B9A6','#E6D2BC','#D8C4E6','#F7D0D8','#EBCF9E','#DCE8C7','#F1DCC4','#F3E9D6'];
+const CLOSED = Date.now() > new Date(CONFIG.orderDeadline).getTime();
 
 let remaining = null;
 let qty = 1;
@@ -270,26 +270,9 @@ let qty = 1;
 function init() {
   $('demoBanner').hidden = !DEMO;
   $('shopName').textContent = CONFIG.shopName;
-  $('priceLabel').textContent = '$' + CONFIG.price;
-  $('pickupHours').textContent = '(' + CONFIG.pickupHours + ')';
-
-  const lids = $('lids');
-  CONFIG.flavors.forEach((f, i) => {
-    const li = document.createElement('li');
-    li.innerHTML = '<span class="lid" style="--lid:' + lidColors[i % 12] + '">' + (i + 1) + '</span><span></span>';
-    li.lastChild.textContent = f;
-    lids.appendChild(li);
-  });
-
-  const days = $('pickupDays');
-  CONFIG.pickupDays.forEach((d, i) => {
-    const l = document.createElement('label');
-    l.className = 'chip';
-    l.innerHTML = '<input type="radio" name="pickup" id="pickup' + i + '"><span></span>';
-    l.querySelector('input').value = d.value;
-    l.querySelector('span').textContent = d.label;
-    days.appendChild(l);
-  });
+  $('priceLabel').textContent = money(CONFIG.price);
+  $('pickupFact').textContent = CONFIG.pickupShort;
+  $('pickupInfo').textContent = 'Anytime ' + CONFIG.pickupWindow + ', ' + CONFIG.pickupHours + '. No need to choose a day.';
 
   $('qtyMinus').addEventListener('click', () => setQty(qty - 1));
   $('qtyPlus').addEventListener('click', () => setQty(qty + 1));
@@ -315,10 +298,14 @@ function renderStock(n) {
   remaining = Math.max(0, n);
   $('stockText').textContent = remaining > 0 ? remaining + ' of ' + CONFIG.total : 'Sold out';
   $('stockBar').style.width = (remaining / CONFIG.total * 100) + '%';
-  const soldOut = remaining === 0;
-  $('submitBtn').disabled = soldOut;
-  $('submitBtn').textContent = soldOut ? 'Sold out' : 'Reserve, pay at pickup';
+  setButton();
   setQty(qty);
+}
+
+function setButton() {
+  const btn = $('submitBtn');
+  btn.disabled = CLOSED || remaining === 0;
+  btn.textContent = CLOSED ? 'Orders closed' : remaining === 0 ? 'Sold out' : 'Reserve, pay at pickup';
 }
 
 function maxQty() {
@@ -336,13 +323,11 @@ function setQty(n) {
 function showError(msg) { const e = $('err'); e.textContent = msg; e.hidden = !msg; }
 
 function readForm() {
-  const pick = document.querySelector('input[name=pickup]:checked');
   return {
     name: $('name').value.trim(),
     phone: $('phone').value.trim(),
     email: $('email').value.trim(),
     qty,
-    pickup: pick ? pick.value : '',
     notes: $('notes').value.trim(),
     website: $('website').value
   };
@@ -352,7 +337,6 @@ function validate(d) {
   if (!d.name) return ['name', 'Please enter your name.'];
   if (d.phone.replace(/\D/g, '').length < 10) return ['phone', 'Please enter a 10-digit phone number.'];
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return ['email', 'Please enter a valid email so we can send your confirmation.'];
-  if (!d.pickup) return ['pickup0', 'Please choose a pickup day.'];
   return null;
 }
 
@@ -388,21 +372,19 @@ async function onSubmit(ev) {
     showDone(d, result.orderId);
   } catch (e) {
     showError(e.message && e.message !== 'Failed to fetch' ? e.message : 'We couldn’t reach the order system. Check your connection and try again.');
-    btn.disabled = remaining === 0;
-    btn.textContent = remaining === 0 ? 'Sold out' : 'Reserve, pay at pickup';
+    setButton();
   }
 }
 
 function showDone(d, id) {
-  const day = CONFIG.pickupDays.find(p => p.value === d.pickup);
   $('dOrder').textContent = id;
   $('dName').textContent = d.name;
   $('dQty').textContent = d.qty;
-  $('dPickup').textContent = (day ? day.label : d.pickup) + ', ' + CONFIG.pickupHours;
+  $('dPickup').textContent = CONFIG.pickupWindow + ', ' + CONFIG.pickupHours;
   $('dTotal').textContent = money(d.qty * CONFIG.price) + ' at pickup';
   $('dEmail').textContent = DEMO
-    ? 'In the live version, a confirmation goes to ' + d.email + ' and a reminder the day before pickup.'
-    : 'A confirmation is on its way to ' + d.email + '. We’ll send a reminder the day before pickup.';
+    ? 'In the live version, a confirmation goes to ' + d.email + ' and a reminder when pickup opens.'
+    : 'A confirmation is on its way to ' + d.email + '. We’ll send a reminder when pickup opens.';
   $('orderForm').hidden = true;
   $('done').hidden = false;
   $('done').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -412,8 +394,7 @@ function resetForm() {
   $('orderForm').reset();
   $('done').hidden = true;
   $('orderForm').hidden = false;
-  $('submitBtn').disabled = remaining === 0;
-  $('submitBtn').textContent = remaining === 0 ? 'Sold out' : 'Reserve, pay at pickup';
+  setButton();
   setQty(1);
   $('name').focus();
 }
